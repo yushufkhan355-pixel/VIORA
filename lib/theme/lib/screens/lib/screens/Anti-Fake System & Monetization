@@ -1,0 +1,51 @@
+const functions = require('firebase-functions');
+const admin = require('firebase-admin');
+admin.initializeApp();
+
+const REWARD_PER_VIEW = 0.005; // ₹0.005 per valid view (1000 views = ₹5)
+const MIN_WATCH_TIME_SECONDS = 5; // Anti-fake: Must watch at least 5 seconds
+
+exports.processVideoView = functions.firestore
+  .document('interactions/{interactionId}')
+  .onCreate(async (snap, context) => {
+    const interactionData = snap.data();
+    const { userId, videoId, watchTimeSeconds, deviceFingerprint } = interactionData;
+
+    if (watchTimeSeconds < MIN_WATCH_TIME_SECONDS) {
+      return snap.ref.update({ isValidView: false, reason: 'Watch time too low' });
+    }
+
+    // Bot Prevention: Check if this device fingerprint has viewed this video multiple times rapidly
+    const recentViews = await admin.firestore().collection('interactions')
+      .where('videoId', '==', videoId)
+      .where('deviceFingerprint', '==', deviceFingerprint)
+      .limit(3)
+      .get();
+
+    if (recentViews.size > 1) {
+      return snap.ref.update({ isValidView: false, reason: 'Duplicate device view' });
+    }
+
+    // Valid View!
+    await snap.ref.update({ isValidView: true });
+
+    // Increment valid views on video
+    const videoRef = admin.firestore().collection('videos').doc(videoId);
+    await videoRef.update({ validViews: admin.firestore.FieldValue.increment(1) });
+
+    // Credit Creator Wallet
+    const videoDoc = await videoRef.get();
+    const uploaderId = videoDoc.data().uploaderId;
+
+    const uploaderRef = admin.firestore().collection('users').doc(uploaderId);
+    await uploaderRef.update({ coins: admin.firestore.FieldValue.increment(REWARD_PER_VIEW) });
+
+    // Add Transaction History
+    await admin.firestore().collection('earnings').doc(uploaderId).collection('transactions').add({
+      amount: REWARD_PER_VIEW,
+      type: 'view_reward',
+      videoId: videoId,
+      status: 'approved',
+      timestamp: admin.firestore.FieldValue.serverTimestamp()
+    });
+  });
