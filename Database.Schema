@@ -1,0 +1,19 @@
+users/{userId}:
+  uid, email, username, bio, profilePic, fcmToken,
+  coins: 0, level: 1, isCreator: false, isVerified: false,
+  referralCode: "ABC123", referredBy: "XYZ", isBanned: false
+
+videos/{videoId}:
+  uploaderId, videoUrl, thumbnailUrl, caption, hashtags[],
+  music, views: 0, validViews: 0, likes: 0, comments: 0,
+  createdAt, isScheduled: false, scheduledTime
+
+earnings/{userId}/transactions/{txnId}:
+  amount, type: "view_reward" | "referral" | "gift" | "withdrawal",
+  status: "pending" | "approved" | "rejected", timestamp, method: "UPI" | "Crypto"
+
+interactions/{interactionId}:
+  userId, videoId, watchTimeSeconds, isValidView: false, deviceFingerprint
+
+messages/{chatRoomId}/messages/{messageId}:
+  senderId, text, mediaUrl, type: "text" | "image" | "voice", timestamp, isRead
