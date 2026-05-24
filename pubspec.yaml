@@ -1,0 +1,16 @@
+dependencies:
+  flutter:
+    sdk: flutter
+  firebase_core: ^2.24.2
+  firebase_auth: ^4.16.0
+  cloud_firestore: ^4.14.0
+  firebase_storage: ^11.6.0
+  google_sign_in: ^6.2.1
+  video_player: ^2.8.2
+  swipe_deck: ^1.1.0 # For vertical reels
+  glassmorphism_ui: ^0.3.0 # For glassmorphism cards
+  provider: ^6.1.2 # State management
+  http: ^1.2.0 # For OpenAI API calls
+  agora_rtc_engine: ^6.3.0 # For Live Streaming
+  cached_network_image: ^3.3.1
+  flutter_svg: ^2.0.10+1
